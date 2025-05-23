@@ -1,74 +1,164 @@
-# Config Generator Script
+# Config Generator (Python Version)
 
-This Python script generates configuration files from a template and a CSV file. It's designed to be flexible and supports tagged placeholders within both the template and CSV headers.
-
-## 📦 Features
-
-- Uses template files with placeholders like `[hostname]`, `[ip]`, etc.
-- Reads CSV files where headers are also enclosed in square brackets (e.g., `[hostname]`)
-- Output directory defaults to `/configs` (created if it doesn't exist)
-- Logs all output actions to `configs/generation.log`
-- Supports creating a `.zip` archive of all generated files
+This Python-based tool generates configuration files from a template and a CSV file containing tagged values.
 
 ---
 
-## 🚀 Usage
+## 🚀 Basic Usage (Local CLI)
 
 ```bash
-python3 config_generator.py -t <TEMPLATE_FILE> -c <CSV_FILE> -f <FILENAME_COLUMN> [-o <OUTPUT_DIR>] [-z]
+python3 config_generator_with_zip.py -t template.txt -c data.csv -f thirdoctet -z
 ```
 
 ### Parameters
 
-| Short | Long             | Required | Description                                                    |
-|-------|------------------|----------|----------------------------------------------------------------|
-| `-t`  | `--template`     | Yes      | Path to the text file used as the template                     |
-| `-c`  | `--csv`          | Yes      | Path to the CSV file containing data values                    |
-| `-f`  | `--filename-column` | Yes   | Name of the CSV column (without brackets) to use for filenames |
-| `-o`  | `--output-dir`   | No       | Directory for saving output files (default: `./configs`)       |
-| `-z`  | `--zip`          | No       | Archive the generated config files into a `configs.zip` file   |
+| Flag             | Description                                                  |
+|------------------|--------------------------------------------------------------|
+| `-t`, `--template` | Path to your template file (with tags like `[hostname]`)     |
+| `-c`, `--csv`       | Path to your CSV file with matching headers                |
+| `-f`, `--filename-column` | Column name (no brackets) to use as output file name |
+| `-o`, `--output-dir` | (Optional) Output folder (default: `./configs`)           |
+| `-z`, `--zip`       | (Optional) Zip the generated files                         |
 
 ---
 
-## 🧩 Example Template
+## 🌐 Web App Version (`app.py`)
 
-```text
-interface GigabitEthernet0/0
- ip address [ip] 255.255.255.0
- description [hostname]
+This version launches a simple web form that allows users to upload a template and CSV, then download a ZIP of generated configs.
+
+### Run It
+
+```bash
+python3 app.py
+```
+
+Then visit: `http://localhost:3000`
+
+---
+
+## 🌍 Reverse Proxy Version (`app-proxy.py`)
+
+This version allows embedding under an existing site like `https://yourdomain.com/tools/config-generator/`.
+
+### 🔁 Apache Reverse Proxy Config
+
+Add this to your Apache site config:
+
+```apache
+ProxyPreserveHost On
+ProxyPass /tools/config-generator/ http://127.0.0.1:3000/tools/config-generator/
+ProxyPassReverse /tools/config-generator/ http://127.0.0.1:3000/tools/config-generator/
+```
+
+Enable modules and restart:
+
+```bash
+sudo a2enmod proxy
+sudo a2enmod proxy_http
+sudo systemctl restart apache2
 ```
 
 ---
 
-## 📄 Example CSV
+### 🧭 Run app-proxy.py
 
-```csv
-[hostname],[ip],[thirdoctet]
-router1,192.168.1.1,1
-router2,192.168.2.1,2
+```bash
+cd /var/www/home
+python3 app-proxy.py
+```
+
+App runs at port 3000 and will be accessible via:
+```
+https://yourdomain.com/tools/config-generator/
 ```
 
 ---
 
-## 🗂 Example Output
+## 🛠️ systemd Service
 
+Create `/etc/systemd/system/config-generator.service`:
+
+```ini
+[Unit]
+Description=Flask Config Generator Service
+After=network.target
+
+[Service]
+User=willc
+Group=www-data
+WorkingDirectory=/var/www/home
+ExecStart=/home/willc/myenv/bin/python app-proxy.py
+Restart=always
+PrivateTmp=true
+NoNewPrivileges=true
+ProtectSystem=full
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+ProtectKernelModules=true
+RestrictAddressFamilies=AF_INET AF_UNIX
+RestrictRealtime=true
+ReadWritePaths=/var/www/home
+Environment=PYTHONUNBUFFERED=1
+Environment=FLASK_ENV=production
+
+[Install]
+WantedBy=multi-user.target
 ```
-configs/
-├── router1.txt
-├── router2.txt
-├── configs.zip      # (only if --zip is used)
-└── generation.log   # records success/failure per file
+
+Enable and run:
+
+```bash
+sudo systemctl daemon-reexec
+sudo systemctl daemon-reload
+sudo systemctl enable config-generator
+sudo systemctl start config-generator
 ```
 
 ---
 
-## 🛠 Notes
+## 🔁 Journald Log Rotation
 
-- All placeholders in the template must exactly match the headers in the CSV (including square brackets).
-- The `--filename-column` should be provided without brackets.
+Edit `/etc/systemd/journald.conf`:
+
+```ini
+SystemMaxUse=100M
+SystemKeepFree=50M
+SystemMaxFileSize=10M
+SystemMaxFiles=10
+```
+
+Apply:
+
+```bash
+sudo systemctl restart systemd-journald
+```
 
 ---
 
-## 🧑‍💻 Author
+## 🧾 Optional: Log to File
 
-Will Curtis - The Tech Shed - thetechshed.dev
+Redirect output:
+
+```ini
+ExecStart=/home/willc/myenv/bin/python app-proxy.py >> /var/log/config-generator.log 2>&1
+```
+
+Logrotate file `/etc/logrotate.d/config-generator`:
+
+```bash
+/var/log/config-generator.log {
+    daily
+    rotate 7
+    compress
+    missingok
+    notifempty
+    create 640 willc adm
+}
+```
+
+---
+
+## ✨ Author
+
+Maintained by The Tech Shed. Styling, branding, and UI match the design of [thetechshed.dev](https://thetechshed.dev)
