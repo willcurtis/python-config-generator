@@ -35,7 +35,7 @@ python3 config_generator_with_zip.py -t <TEMPLATE_FILE> -c <CSV_FILE> -f <FILENA
 ```text
 interface GigabitEthernet0/0
  ip address [ip] 255.255.255.0
- description Router [hostname]
+ description [hostname]
 ```
 
 ---
