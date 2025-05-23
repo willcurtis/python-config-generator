@@ -63,7 +63,7 @@ sudo systemctl restart apache2
 ### 🧭 Run app-proxy.py
 
 ```bash
-cd /var/www/home
+cd /var/www/home <or wherever the file is located>
 python3 app-proxy.py
 ```
 
@@ -76,6 +76,8 @@ https://yourdomain.com/tools/config-generator/
 
 ## 🛠️ systemd Service
 
+This assumes that the app-proxy.py file is located in the web root and you are using a Python venv from your home directory
+
 Create `/etc/systemd/system/config-generator.service`:
 
 ```ini
@@ -84,10 +86,10 @@ Description=Flask Config Generator Service
 After=network.target
 
 [Service]
-User=willc
+User=<user>
 Group=www-data
 WorkingDirectory=/var/www/home
-ExecStart=/home/willc/myenv/bin/python app-proxy.py
+ExecStart=/home/<user>/myenv/bin/python app-proxy.py
 Restart=always
 PrivateTmp=true
 NoNewPrivileges=true
@@ -141,7 +143,7 @@ sudo systemctl restart systemd-journald
 Redirect output:
 
 ```ini
-ExecStart=/home/willc/myenv/bin/python app-proxy.py >> /var/log/config-generator.log 2>&1
+ExecStart=/home/<user>/myenv/bin/python app-proxy.py >> /var/log/config-generator.log 2>&1
 ```
 
 Logrotate file `/etc/logrotate.d/config-generator`:
@@ -153,7 +155,7 @@ Logrotate file `/etc/logrotate.d/config-generator`:
     compress
     missingok
     notifempty
-    create 640 willc adm
+    create 640 <user> adm
 }
 ```
 
