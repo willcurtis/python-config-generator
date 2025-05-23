@@ -15,7 +15,7 @@ This Python script generates configuration files from a template and a CSV file.
 ## 🚀 Usage
 
 ```bash
-python3 config_generator_with_zip.py -t <TEMPLATE_FILE> -c <CSV_FILE> -f <FILENAME_COLUMN> [-o <OUTPUT_DIR>] [-z]
+python3 config_generator.py -t <TEMPLATE_FILE> -c <CSV_FILE> -f <FILENAME_COLUMN> [-o <OUTPUT_DIR>] [-z]
 ```
 
 ### Parameters
