@@ -6,7 +6,7 @@ This Python script generates configuration files from a template and a CSV file.
 
 - Uses template files with placeholders like `[hostname]`, `[ip]`, etc.
 - Reads CSV files where headers are also enclosed in square brackets (e.g., `[hostname]`)
-- Output directory defaults to `./configs` (created if it doesn't exist)
+- Output directory defaults to `/configs` (created if it doesn't exist)
 - Logs all output actions to `configs/generation.log`
 - Supports creating a `.zip` archive of all generated files
 
